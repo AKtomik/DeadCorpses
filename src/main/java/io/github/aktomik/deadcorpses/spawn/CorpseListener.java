@@ -1,5 +1,6 @@
 package io.github.aktomik.deadcorpses.spawn;
 
+import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -7,6 +8,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,11 +17,18 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
 public class CorpseListener implements Listener {
+
+	final private Plugin plugin;
+	public CorpseListener(Plugin plugin) {
+		this.plugin = plugin;
+	}
 
 	@EventHandler
 	void OnDeath(PlayerDeathEvent event) {
@@ -44,6 +53,10 @@ public class CorpseListener implements Listener {
 			mannequinEq.setBoots(playerEq.getBoots());
 			mannequinEq.setItemInMainHand(playerEq.getItemInMainHand());
 			mannequinEq.setItemInOffHand(playerEq.getItemInOffHand());
+
+			NamespacedKey key = new NamespacedKey(plugin, "corpse");
+			mannequin.getPersistentDataContainer().set(key, PersistentDataType.BOOLEAN, true);
+			mannequin.setCollidable(false);
 		});
 
 
@@ -75,5 +88,17 @@ public class CorpseListener implements Listener {
 		if (target.getType() != EntityType.MANNEQUIN) return;
 		if (target.getLocation().distance(player.getLocation()) > 3) return;
 		target.remove();
+	}
+
+	@EventHandler
+	public void onEntityLoad(EntityAddToWorldEvent event) {
+		Entity entity = event.getEntity();
+		if (!(entity instanceof LivingEntity living)) return;
+
+		NamespacedKey key = new NamespacedKey(plugin, "corpse");
+		if (living.getPersistentDataContainer().has(key, PersistentDataType.BOOLEAN)) {
+			living.setCollidable(false);
+			living.setInvulnerable(true);
+		}
 	}
 }

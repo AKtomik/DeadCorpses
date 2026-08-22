@@ -8,7 +8,7 @@ public final class DeadCorpses extends JavaPlugin {
     @Override
     public void onEnable() {
         // Plugin startup logic
-        getServer().getPluginManager().registerEvents(new CorpseListener(), this);
+        getServer().getPluginManager().registerEvents(new CorpseListener(this), this);
         getLogger().info("Enabled!");
     }
 
