@@ -2,20 +2,17 @@ package io.github.aktomik.deadcorpses.spawn;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import io.github.aktomik.deadcorpses.pdc.ItemArrayDataType;
-import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Pose;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -31,10 +28,12 @@ public class CorpseListener implements Listener {
 
 	// config ideas:
 	// - deathSendCoordinates
+	// - corpseIsInvulnerable
+	// - itemEnableGive
+	// - itemGiveToSlot
 	// - xpLossEnableCustom
 	// - xpLossCustomPercentage
 	// - xpLossCustomMax
-	// - corpseIsInvulnerable
 
 	public CorpseListener(Plugin plugin) {
 		corpsePdcKey = new NamespacedKey(plugin, "corpse");
@@ -60,22 +59,8 @@ public class CorpseListener implements Listener {
 		if (xpDrop == 0 && itemsDrop.isEmpty()) return;
 
 		Objects.requireNonNull(location).getWorld().spawn(location, Mannequin.class, corpse -> {
-			corpse.setCollidable(false);
-			corpse.setInvulnerable(true);
-			corpse.setAI(false);
-			corpse.setCanPickupItems(false);
-			corpse.setPose(Pose.SLEEPING);
-
-			corpse.setProfile(ResolvableProfile.resolvableProfile(player.getPlayerProfile()));
-
-			EntityEquipment playerEq = player.getEquipment();
-			EntityEquipment corpseEq = corpse.getEquipment();
-			corpseEq.setHelmet(playerEq.getHelmet());
-			corpseEq.setChestplate(playerEq.getChestplate());
-			corpseEq.setLeggings(playerEq.getLeggings());
-			corpseEq.setBoots(playerEq.getBoots());
-			corpseEq.setItemInMainHand(playerEq.getItemInMainHand());
-			corpseEq.setItemInOffHand(playerEq.getItemInOffHand());
+			CorpseFunctions.applyCorpseProperties(corpse);
+			CorpseFunctions.morphAndEquipCorpse(corpse, player);
 
 			PersistentDataContainer pdc = corpse.getPersistentDataContainer();
 			pdc.set(corpsePdcKey, PersistentDataType.BOOLEAN, true);
@@ -119,9 +104,8 @@ public class CorpseListener implements Listener {
 		if (!(entity instanceof Mannequin corpse)) return;
 
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();
-		if (pdc.has(corpsePdcKey, PersistentDataType.BOOLEAN)) {
-			corpse.setCollidable(false);
-			corpse.setInvulnerable(true);
-		}
+		if (!pdc.has(corpsePdcKey, PersistentDataType.BOOLEAN)) return;
+
+		CorpseFunctions.applyCorpseProperties(corpse);
 	}
 }
