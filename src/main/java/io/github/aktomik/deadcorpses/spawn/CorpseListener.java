@@ -16,6 +16,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
@@ -26,8 +27,15 @@ import java.util.Objects;
 public class CorpseListener implements Listener {
 
 	private final Plugin plugin;
+	private final NamespacedKey PDC_CORPSE_KEY;
+	private final NamespacedKey PDC_DROP_XP_KEY;
+	private final NamespacedKey PDC_DROP_ITEMS_KEY;
+
 	public CorpseListener(Plugin plugin) {
 		this.plugin = plugin;
+		PDC_CORPSE_KEY = new NamespacedKey(plugin, "corpse");
+		PDC_DROP_XP_KEY = new NamespacedKey(plugin, "drop_xp");
+		PDC_DROP_ITEMS_KEY = new NamespacedKey(plugin, "drop_items");
 	}
 
 	@EventHandler
@@ -36,40 +44,40 @@ public class CorpseListener implements Listener {
 		Player player = event.getPlayer();
 		if (player.getGameMode() == GameMode.SPECTATOR) return;
 
+
+		int xpDrop = event.getDroppedExp();
+		event.setShouldDropExperience(false);
+		Iterator<ItemStack> drops = event.getDrops().iterator();
+		ArrayList<ItemStack> itemsDrop = new ArrayList<>();
+		while (drops.hasNext()) {
+			ItemStack item = drops.next();
+			itemsDrop.add(item);
+			drops.remove();
+		}
+		if (xpDrop == 0 && itemsDrop.isEmpty()) return;
+
+
 		Objects.requireNonNull(location).getWorld().spawn(location, Mannequin.class, corpse -> {
 			corpse.setCollidable(false);
 			corpse.setInvulnerable(true);
 			corpse.setAI(false);
 			corpse.setCanPickupItems(false);
 			corpse.setPose(Pose.SLEEPING);
-
 			corpse.setProfile(ResolvableProfile.resolvableProfile(player.getPlayerProfile()));
 
 			EntityEquipment playerEq = player.getEquipment();
-			EntityEquipment mannequinEq = corpse.getEquipment();
-			mannequinEq.setHelmet(playerEq.getHelmet());
-			mannequinEq.setChestplate(playerEq.getChestplate());
-			mannequinEq.setLeggings(playerEq.getLeggings());
-			mannequinEq.setBoots(playerEq.getBoots());
-			mannequinEq.setItemInMainHand(playerEq.getItemInMainHand());
-			mannequinEq.setItemInOffHand(playerEq.getItemInOffHand());
+			EntityEquipment corpseEq = corpse.getEquipment();
+			corpseEq.setHelmet(playerEq.getHelmet());
+			corpseEq.setChestplate(playerEq.getChestplate());
+			corpseEq.setLeggings(playerEq.getLeggings());
+			corpseEq.setBoots(playerEq.getBoots());
+			corpseEq.setItemInMainHand(playerEq.getItemInMainHand());
+			corpseEq.setItemInOffHand(playerEq.getItemInOffHand());
 
-			NamespacedKey key = new NamespacedKey(plugin, "corpse");
-			corpse.getPersistentDataContainer().set(key, PersistentDataType.BOOLEAN, true);
-			corpse.setCollidable(false);
+			PersistentDataContainer corpsePdc = corpse.getPersistentDataContainer();
+			corpsePdc.set(PDC_CORPSE_KEY, PersistentDataType.BOOLEAN, true);
+			corpsePdc.set(PDC_DROP_XP_KEY, PersistentDataType.INTEGER, xpDrop);
 		});
-
-
-		int droppedXp = event.getDroppedExp();
-		event.setShouldDropExperience(false);
-		Iterator<ItemStack> drops = event.getDrops().iterator();
-		ArrayList<ItemStack> droppedItems = new ArrayList<>();
-		while (drops.hasNext()) {
-			ItemStack item = drops.next();
-			droppedItems.add(item);
-			drops.remove();
-		}
-
 
 		TagResolver resolvers = TagResolver.resolver(
 			Placeholder.parsed("x", Integer.toString(location.getBlockX())),
@@ -84,19 +92,29 @@ public class CorpseListener implements Listener {
 	@EventHandler
 	void onEntityClick(PlayerInteractEntityEvent event) {
 		Player player = event.getPlayer();
-		Entity target = event.getRightClicked();
-		if (target.getType() != EntityType.MANNEQUIN) return;
-		if (target.getLocation().distance(Objects.requireNonNull(player.getLocation())) > 3) return;
-		target.remove();
+		Entity entity = event.getRightClicked();
+		if (entity.getType() != EntityType.MANNEQUIN || !(entity instanceof LivingEntity)) return;
+		if (entity.getLocation().distance(Objects.requireNonNull(player.getLocation())) > 3) return;
+
+		PersistentDataContainer pdc = entity.getPersistentDataContainer();
+		if (!pdc.has(PDC_CORPSE_KEY, PersistentDataType.BOOLEAN)) return;
+
+		int xpDrop = pdc.getOrDefault(PDC_DROP_XP_KEY, PersistentDataType.INTEGER, 0);
+
+		Location location = entity.getLocation();
+		location.getWorld().spawn(location, ExperienceOrb.class, orb -> {
+			orb.setExperience(xpDrop);
+		});
+		entity.remove();
 	}
 
 	@EventHandler
 	public void onEntityLoad(EntityAddToWorldEvent event) {
 		Entity entity = event.getEntity();
-		if (!(entity instanceof LivingEntity living)) return;
+		if (entity.getType() != EntityType.MANNEQUIN || !(entity instanceof LivingEntity living)) return;
 
-		NamespacedKey key = new NamespacedKey(plugin, "corpse");
-		if (living.getPersistentDataContainer().has(key, PersistentDataType.BOOLEAN)) {
+		PersistentDataContainer pdc = entity.getPersistentDataContainer();
+		if (pdc.has(PDC_CORPSE_KEY, PersistentDataType.BOOLEAN)) {
 			living.setCollidable(false);
 			living.setInvulnerable(true);
 		}
