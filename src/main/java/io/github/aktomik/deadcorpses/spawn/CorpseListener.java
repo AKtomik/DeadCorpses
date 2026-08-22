@@ -1,6 +1,7 @@
 package io.github.aktomik.deadcorpses.spawn;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
+import io.github.aktomik.deadcorpses.pdc.ItemArrayDataType;
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -8,6 +9,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -74,9 +76,10 @@ public class CorpseListener implements Listener {
 			corpseEq.setItemInMainHand(playerEq.getItemInMainHand());
 			corpseEq.setItemInOffHand(playerEq.getItemInOffHand());
 
-			PersistentDataContainer corpsePdc = corpse.getPersistentDataContainer();
-			corpsePdc.set(PDC_CORPSE_KEY, PersistentDataType.BOOLEAN, true);
-			corpsePdc.set(PDC_DROP_XP_KEY, PersistentDataType.INTEGER, xpDrop);
+			PersistentDataContainer pdc = corpse.getPersistentDataContainer();
+			pdc.set(PDC_CORPSE_KEY, PersistentDataType.BOOLEAN, true);
+			pdc.set(PDC_DROP_XP_KEY, PersistentDataType.INTEGER, xpDrop);
+			pdc.set(PDC_DROP_ITEMS_KEY, ItemArrayDataType.INSTANCE, itemsDrop.toArray(new ItemStack[] {}));
 		});
 
 		TagResolver resolvers = TagResolver.resolver(
@@ -99,11 +102,16 @@ public class CorpseListener implements Listener {
 		if (!pdc.has(PDC_CORPSE_KEY, PersistentDataType.BOOLEAN)) return;
 
 		int xpDrop = pdc.getOrDefault(PDC_DROP_XP_KEY, PersistentDataType.INTEGER, 0);
+		ItemStack[] itemsDrop = pdc.getOrDefault(PDC_DROP_ITEMS_KEY, ItemArrayDataType.INSTANCE, new ItemStack[] {});
 
 		Location location = entity.getLocation();
 		location.getWorld().spawn(location, ExperienceOrb.class, orb -> {
 			orb.setExperience(xpDrop);
 		});
+		for (ItemStack item : itemsDrop) {
+			if (item == null || item.getType() == Material.AIR) continue;
+			entity.getWorld().dropItemNaturally(location, item);
+		}
 		entity.remove();
 	}
 
