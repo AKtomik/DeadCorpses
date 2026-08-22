@@ -7,13 +7,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.EntityEquipment;
@@ -22,9 +20,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.Plugin;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 
 public class CorpseListener implements Listener {
 
@@ -41,7 +37,7 @@ public class CorpseListener implements Listener {
 	}
 
 	@EventHandler
-	void onDeath(PlayerDeathEvent event) {
+	void onPlayerDeath(PlayerDeathEvent event) {
 		Location location = event.getEntity().getLocation();
 		Player player = event.getPlayer();
 		if (player.getGameMode() == GameMode.SPECTATOR) return;
@@ -92,38 +88,41 @@ public class CorpseListener implements Listener {
 	}
 
 	@EventHandler
-	void onEntityClick(PlayerInteractEntityEvent event) {
-		Player player = event.getPlayer();
-		Entity entity = event.getRightClicked();
-		if (entity.getType() != EntityType.MANNEQUIN || !(entity instanceof LivingEntity)) return;
-		if (entity.getLocation().distance(Objects.requireNonNull(player.getLocation())) > 3) return;
-
+	public void onMannequinDeath(EntityDeathEvent event) {
+		Entity entity = event.getEntity();
+		if (!(event.getEntity() instanceof Mannequin)) return;
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();
 		if (!pdc.has(PDC_CORPSE_KEY, PersistentDataType.BOOLEAN)) return;
 
 		int xpDrop = pdc.getOrDefault(PDC_DROP_XP_KEY, PersistentDataType.INTEGER, 0);
-		ItemStack[] itemsDrop = pdc.getOrDefault(PDC_DROP_ITEMS_KEY, ItemArrayDataType.INSTANCE, new ItemStack[] {});
+		List<ItemStack> itemsDrop = Arrays.stream(pdc.getOrDefault(PDC_DROP_ITEMS_KEY, ItemArrayDataType.INSTANCE, new ItemStack[] {})).toList();
 
-		Location location = entity.getLocation();
-		location.getWorld().spawn(location, ExperienceOrb.class, orb -> {
-			orb.setExperience(xpDrop);
-		});
-		for (ItemStack item : itemsDrop) {
-			if (item == null || item.getType() == Material.AIR) continue;
-			entity.getWorld().dropItemNaturally(location, item);
-		}
-		entity.remove();
+		event.getDrops().clear();
+		event.getDrops().addAll(itemsDrop);
+		event.setDroppedExp(xpDrop);
+	}
+
+	@EventHandler
+	void onClickOnEntity(PlayerInteractEntityEvent event) {
+		Entity entity = event.getRightClicked();
+		if (!(entity instanceof Mannequin mannequin)) return;
+		Player player = event.getPlayer();
+		if (entity.getLocation().distance(Objects.requireNonNull(player.getLocation())) > 3) return;
+		PersistentDataContainer pdc = entity.getPersistentDataContainer();
+		if (!pdc.has(PDC_CORPSE_KEY, PersistentDataType.BOOLEAN)) return;
+
+		mannequin.kill();
 	}
 
 	@EventHandler
 	public void onEntityLoad(EntityAddToWorldEvent event) {
 		Entity entity = event.getEntity();
-		if (entity.getType() != EntityType.MANNEQUIN || !(entity instanceof LivingEntity living)) return;
+		if (!(entity instanceof Mannequin corpse)) return;
 
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();
 		if (pdc.has(PDC_CORPSE_KEY, PersistentDataType.BOOLEAN)) {
-			living.setCollidable(false);
-			living.setInvulnerable(true);
+			corpse.setCollidable(false);
+			corpse.setInvulnerable(true);
 		}
 	}
 }
