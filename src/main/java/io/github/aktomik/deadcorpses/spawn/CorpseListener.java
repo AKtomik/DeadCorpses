@@ -6,7 +6,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.*;
@@ -14,7 +13,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -22,31 +20,32 @@ import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Objects;
 
 public class CorpseListener implements Listener {
 
-	final private Plugin plugin;
+	private final Plugin plugin;
 	public CorpseListener(Plugin plugin) {
 		this.plugin = plugin;
 	}
 
 	@EventHandler
-	void OnDeath(PlayerDeathEvent event) {
+	void onDeath(PlayerDeathEvent event) {
 		Location location = event.getEntity().getLocation();
 		Player player = event.getPlayer();
 
 
-		location.getWorld().spawn(location, Mannequin.class, mannequin -> {
-			mannequin.setCollidable(false);
-			mannequin.setInvulnerable(true);
-			mannequin.setAI(false);
-			mannequin.setCanPickupItems(false);
-			mannequin.setPose(Pose.SLEEPING);
+		Objects.requireNonNull(location).getWorld().spawn(location, Mannequin.class, corpse -> {
+			corpse.setCollidable(false);
+			corpse.setInvulnerable(true);
+			corpse.setAI(false);
+			corpse.setCanPickupItems(false);
+			corpse.setPose(Pose.SLEEPING);
 
-			mannequin.setProfile(ResolvableProfile.resolvableProfile(player.getPlayerProfile()));
+			corpse.setProfile(ResolvableProfile.resolvableProfile(player.getPlayerProfile()));
 
 			EntityEquipment playerEq = player.getEquipment();
-			EntityEquipment mannequinEq = mannequin.getEquipment();
+			EntityEquipment mannequinEq = corpse.getEquipment();
 			mannequinEq.setHelmet(playerEq.getHelmet());
 			mannequinEq.setChestplate(playerEq.getChestplate());
 			mannequinEq.setLeggings(playerEq.getLeggings());
@@ -55,8 +54,8 @@ public class CorpseListener implements Listener {
 			mannequinEq.setItemInOffHand(playerEq.getItemInOffHand());
 
 			NamespacedKey key = new NamespacedKey(plugin, "corpse");
-			mannequin.getPersistentDataContainer().set(key, PersistentDataType.BOOLEAN, true);
-			mannequin.setCollidable(false);
+			corpse.getPersistentDataContainer().set(key, PersistentDataType.BOOLEAN, true);
+			corpse.setCollidable(false);
 		});
 
 
@@ -86,7 +85,7 @@ public class CorpseListener implements Listener {
 		Player player = event.getPlayer();
 		Entity target = event.getRightClicked();
 		if (target.getType() != EntityType.MANNEQUIN) return;
-		if (target.getLocation().distance(player.getLocation()) > 3) return;
+		if (target.getLocation().distance(Objects.requireNonNull(player.getLocation())) > 3) return;
 		target.remove();
 	}
 
