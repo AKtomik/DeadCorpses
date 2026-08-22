@@ -29,6 +29,12 @@ public class CorpseListener implements Listener {
 	// config ideas:
 	// - deathSendCoordinates
 	// - corpseIsInvulnerable
+	// - corpseLargerHitbox
+	// - corpseDamageByPlayer
+	// - corpseDamageByHot
+	// - corpseDamageByOther
+	// - pickupByOthers
+	// - pickupParticleAmount
 	// - itemEnableGive
 	// - itemGiveToSlot
 	// - xpLossEnableCustom
@@ -56,7 +62,6 @@ public class CorpseListener implements Listener {
 			itemsDrop.add(item);
 			drops.remove();
 		}
-		if (xpDrop == 0 && itemsDrop.isEmpty()) return;
 
 		Objects.requireNonNull(location).getWorld().spawn(location, Mannequin.class, corpse -> {
 			CorpseFunctions.applyCorpseProperties(corpse);
@@ -70,7 +75,7 @@ public class CorpseListener implements Listener {
 	}
 
 	@EventHandler
-	public void onMannequinDeath(EntityDeathEvent event) {
+	public void onCorpseDeath(EntityDeathEvent event) {
 		Entity entity = event.getEntity();
 		if (!(event.getEntity() instanceof Mannequin mannequin)) return;
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();
@@ -87,7 +92,7 @@ public class CorpseListener implements Listener {
 	}
 
 	@EventHandler
-	void onClickOnEntity(PlayerInteractEntityEvent event) {
+	void onClickOnCorpse(PlayerInteractEntityEvent event) {
 		Entity entity = event.getRightClicked();
 		if (!(entity instanceof Mannequin mannequin)) return;
 		Player player = event.getPlayer();

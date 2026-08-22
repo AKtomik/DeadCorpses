@@ -11,7 +11,7 @@ public class CorpseFunctions {
 
 	public static void applyCorpseProperties(Mannequin corpse) {
 		corpse.setCollidable(false);
-		corpse.setInvulnerable(false);
+		corpse.setInvulnerable(true);
 		corpse.setAI(false);
 		corpse.setCanPickupItems(false);
 		corpse.setPose(Pose.SLEEPING);
