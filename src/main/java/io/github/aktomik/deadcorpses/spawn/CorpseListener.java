@@ -13,6 +13,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class CorpseListener implements Listener {
 
@@ -38,6 +42,16 @@ public class CorpseListener implements Listener {
 			mannequinEq.setItemInOffHand(playerEq.getItemInOffHand());
 		});
 
+
+		int droppedXp = event.getDroppedExp();
+		event.setShouldDropExperience(false);
+		Iterator<ItemStack> drops = event.getDrops().iterator();
+		ArrayList<ItemStack> droppedItems = new ArrayList<>();
+		while (drops.hasNext()) {
+			ItemStack item = drops.next();
+			droppedItems.add(item);
+			drops.remove();
+		}
 
 		TagResolver resolvers = TagResolver.resolver(
 			Placeholder.parsed("x", Integer.toString(location.getBlockX())),
