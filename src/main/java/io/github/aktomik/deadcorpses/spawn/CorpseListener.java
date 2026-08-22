@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.*;
@@ -33,7 +34,7 @@ public class CorpseListener implements Listener {
 	void onDeath(PlayerDeathEvent event) {
 		Location location = event.getEntity().getLocation();
 		Player player = event.getPlayer();
-
+		if (player.getGameMode() == GameMode.SPECTATOR) return;
 
 		Objects.requireNonNull(location).getWorld().spawn(location, Mannequin.class, corpse -> {
 			corpse.setCollidable(false);
