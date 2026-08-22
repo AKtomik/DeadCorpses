@@ -5,13 +5,14 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.entity.Mannequin;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Pose;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 
@@ -28,6 +29,9 @@ public class CorpseListener implements Listener {
 
 		location.getWorld().spawn(location, Mannequin.class, mannequin -> {
 			mannequin.setCollidable(false);
+			mannequin.setInvulnerable(true);
+			mannequin.setAI(false);
+			mannequin.setCanPickupItems(false);
 			mannequin.setPose(Pose.SLEEPING);
 
 			mannequin.setProfile(ResolvableProfile.resolvableProfile(player.getPlayerProfile()));
@@ -53,6 +57,7 @@ public class CorpseListener implements Listener {
 			drops.remove();
 		}
 
+
 		TagResolver resolvers = TagResolver.resolver(
 			Placeholder.parsed("x", Integer.toString(location.getBlockX())),
 			Placeholder.parsed("y", Integer.toString(location.getBlockY())),
@@ -60,5 +65,15 @@ public class CorpseListener implements Listener {
 		);
 		Component message = MiniMessage.miniMessage().deserialize("<blue>you died at <aqua><b><x> <y> <z></b></aqua>", resolvers);
 		player.sendMessage(message);
+	}
+
+
+	@EventHandler
+	void onEntityClick(PlayerInteractEntityEvent event) {
+		Player player = event.getPlayer();
+		Entity target = event.getRightClicked();
+		if (target.getType() != EntityType.MANNEQUIN) return;
+		if (target.getLocation().distance(player.getLocation()) > 3) return;
+		target.remove();
 	}
 }
