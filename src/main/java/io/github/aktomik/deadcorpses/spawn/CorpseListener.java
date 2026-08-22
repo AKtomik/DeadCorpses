@@ -88,7 +88,6 @@ public class CorpseListener implements Listener {
 		player.sendMessage(message);
 	}
 
-
 	@EventHandler
 	void onEntityClick(PlayerInteractEntityEvent event) {
 		Player player = event.getPlayer();
