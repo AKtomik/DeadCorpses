@@ -1,4 +1,4 @@
-package io.github.aktomik.deadcorpses.spawn;
+package io.github.aktomik.deadcorpses.corpse;
 
 import io.papermc.paper.datacomponent.item.ResolvableProfile;
 import org.bukkit.entity.Mannequin;

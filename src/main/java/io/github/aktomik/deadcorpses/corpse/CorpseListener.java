@@ -1,4 +1,4 @@
-package io.github.aktomik.deadcorpses.spawn;
+package io.github.aktomik.deadcorpses.corpse;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import io.github.aktomik.deadcorpses.pdc.ItemArrayDataType;
