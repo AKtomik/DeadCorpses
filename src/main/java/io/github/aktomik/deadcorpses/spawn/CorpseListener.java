@@ -2,9 +2,7 @@ package io.github.aktomik.deadcorpses.spawn;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import io.github.aktomik.deadcorpses.pdc.ItemArrayDataType;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mannequin;
 import org.bukkit.entity.Player;
@@ -88,7 +86,10 @@ public class CorpseListener implements Listener {
 		event.getDrops().addAll(itemsDrop);
 		event.setDroppedExp(xpDrop);
 
-		mannequin.remove();// no death animation
+		Location location = mannequin.getLocation();
+		location.getWorld().spawnParticle(Particle.POOF, location, 30, 0, 0, 0, .1);
+		location.getWorld().playSound(location, Sound.ENTITY_SHULKER_BULLET_HURT, 3, 1);
+		mannequin.remove();// no death animation it would be weird
 	}
 
 	@EventHandler
