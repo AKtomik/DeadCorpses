@@ -51,9 +51,9 @@ public class CorpseListener implements Listener {
 	}
 
 	@EventHandler
-	void onPlayerDeath(PlayerDeathEvent event) {
-		Location location = event.getEntity().getLocation();
+	public void onPlayerDeath(PlayerDeathEvent event) {
 		Player player = event.getPlayer();
+		Location location = player.getLocation();
 		if (player.getGameMode() == GameMode.SPECTATOR) return;
 
 		int xpDrop = event.getDroppedExp();
@@ -101,7 +101,7 @@ public class CorpseListener implements Listener {
 	}
 
 	@EventHandler
-	void onClickOnCorpse(PlayerInteractEntityEvent event) {
+	public void onClickOnCorpse(PlayerInteractEntityEvent event) {
 		if (event.getHand() != EquipmentSlot.HAND) return;
 		Entity entity = event.getRightClicked();
 		if (!(entity instanceof Mannequin mannequin)) return;
