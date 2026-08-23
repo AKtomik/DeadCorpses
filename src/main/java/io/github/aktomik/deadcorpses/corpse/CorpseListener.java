@@ -58,13 +58,8 @@ public class CorpseListener implements Listener {
 
 		int xpDrop = event.getDroppedExp();
 		event.setShouldDropExperience(false);
-		Iterator<ItemStack> drops = event.getDrops().iterator();
-		ArrayList<ItemStack> itemsDrop = new ArrayList<>();
-		while (drops.hasNext()) {
-			ItemStack item = drops.next();
-			itemsDrop.add(item);
-			drops.remove();
-		}
+		List<ItemStack> itemsDrop = event.getDrops().stream().toList();
+		event.getDrops().clear();
 
 		Objects.requireNonNull(location).getWorld().spawn(location, Mannequin.class, corpse -> {
 			CorpseFunctions.applyCorpseProperties(corpse);
