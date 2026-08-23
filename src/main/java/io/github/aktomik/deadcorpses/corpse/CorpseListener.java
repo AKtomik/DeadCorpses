@@ -15,6 +15,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -106,6 +107,7 @@ public class CorpseListener implements Listener {
 
 	@EventHandler
 	void onClickOnCorpse(PlayerInteractEntityEvent event) {
+		if (event.getHand() != EquipmentSlot.HAND) return;
 		Entity entity = event.getRightClicked();
 		if (!(entity instanceof Mannequin mannequin)) return;
 		Player player = event.getPlayer();
