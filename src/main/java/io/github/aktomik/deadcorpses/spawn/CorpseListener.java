@@ -2,6 +2,10 @@ package io.github.aktomik.deadcorpses.spawn;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import io.github.aktomik.deadcorpses.pdc.ItemArrayDataType;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Mannequin;
@@ -70,6 +74,14 @@ public class CorpseListener implements Listener {
 			pdc.set(dropXpPdcKey, PersistentDataType.INTEGER, xpDrop);
 			pdc.set(dropItemsPdcKey, ItemArrayDataType.INSTANCE, itemsDrop.toArray(new ItemStack[] {}));
 		});
+
+		TagResolver resolvers = TagResolver.resolver(
+			Placeholder.parsed("x", Integer.toString(location.getBlockX())),
+			Placeholder.parsed("y", Integer.toString(location.getBlockY())),
+			Placeholder.parsed("z", Integer.toString(location.getBlockZ()))
+		);
+		Component message = MiniMessage.miniMessage().deserialize("<blue>you died at <aqua><b><x> <y> <z></b></aqua>", resolvers);
+		player.sendMessage(message);
 	}
 
 	@EventHandler
