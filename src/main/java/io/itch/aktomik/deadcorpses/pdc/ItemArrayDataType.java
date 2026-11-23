@@ -1,4 +1,4 @@
-package io.github.aktomik.deadcorpses.pdc;
+package io.itch.aktomik.deadcorpses.pdc;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataAdapterContext;

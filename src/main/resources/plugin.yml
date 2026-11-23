@@ -1,6 +1,6 @@
 name: DeadCorpses
 version: '${version}'
 
-main: io.github.aktomik.deadcorpses.DeadCorpses
+main: io.itch.aktomik.deadcorpses.DeadCorpses
 api-version: '26.2'
 load: POSTWORLD

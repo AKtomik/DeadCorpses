@@ -1,7 +1,7 @@
-package io.github.aktomik.deadcorpses.corpse;
+package io.itch.aktomik.deadcorpses.corpse;
 
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
-import io.github.aktomik.deadcorpses.pdc.ItemArrayDataType;
+import io.itch.aktomik.deadcorpses.pdc.ItemArrayDataType;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;

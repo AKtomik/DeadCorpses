@@ -1,6 +1,6 @@
-package io.github.aktomik.deadcorpses;
+package io.itch.aktomik.deadcorpses;
 
-import io.github.aktomik.deadcorpses.corpse.CorpseListener;
+import io.itch.aktomik.deadcorpses.corpse.CorpseListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class DeadCorpses extends JavaPlugin {
