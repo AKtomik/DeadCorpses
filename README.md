@@ -1,0 +1,1 @@
+Dead Corpses is a bukkit minecraft plugin creating fun graves when you die.
