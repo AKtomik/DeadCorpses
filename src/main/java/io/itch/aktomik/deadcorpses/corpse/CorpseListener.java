@@ -110,7 +110,7 @@ public class CorpseListener implements Listener {
 		PersistentDataContainer pdc = entity.getPersistentDataContainer();
 		if (!pdc.has(corpsePdcKey, PersistentDataType.BOOLEAN)) return;
 
-		mannequin.kill();
+		mannequin.setHealth(0);
 	}
 
 	@EventHandler
