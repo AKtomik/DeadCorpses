@@ -1,5 +1,6 @@
 name: DeadCorpses
 version: '${version}'
+folia-supported: true
 
 main: io.itch.aktomik.deadcorpses.DeadCorpses
 api-version: '1.21.9'
